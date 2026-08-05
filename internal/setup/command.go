@@ -94,10 +94,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	if err := scaffoldRunner(dir, a); err != nil {
 		return err
 	}
+	if err := scaffoldWrapper(dir, a); err != nil {
+		return err
+	}
 
 	engine.PrintSuccess("Wrote %s", projectconfig.ConfigRelPath)
 	if a.wantsRunner() {
 		engine.PrintInfo("Scaffolded %s - add your seeders there, then `gorun seed run` picks them up.", runnerPath+"/main.go")
+		engine.PrintInfo("Scaffolded ./gorun (and gorun.bat for Windows) - a shortcut for `go run ./cmd/gorun-runner`.")
 	}
 	engine.PrintInfo("Run `gorun db status` to check connectivity, or `gorun help` to see everything else.")
 	return nil

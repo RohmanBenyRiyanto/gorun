@@ -43,6 +43,11 @@ entrypoint just calls `gorun.LoadConfigFile` to get the same `Config` the
 global binary resolved, attaches real seeders, and calls `gorun.New`
 itself - see the generated file's comments.
 
+`gorun setup` also scaffolds `gorun`/`gorun.bat` right next to it - a
+shortcut for `go run ./cmd/gorun-runner "$@"`, so any command that needs
+your project's own seeders/config (not just `seed run`) can be typed as
+`./gorun migrate run` instead of the full `go run` invocation.
+
 `migrate fresh --seed` and `migrate refresh --seed` shell out to `go run
 <Config.RunnerPath> seed run ...` the same way, to run seeders after a
 rebuild - `--seed` errors immediately with a clear message if
