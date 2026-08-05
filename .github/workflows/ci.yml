@@ -8,7 +8,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +39,33 @@ jobs:
             echo "$fmt_out"
             exit 1
           fi
+
+  windows-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build gorun.exe
+        run: go build -o gorun.exe ./cmd/gorun
+
+      - name: gorun setup in a scratch project
+        run: |
+          mkdir scratch
+          cd scratch
+          go mod init scratch
+          ..\gorun.exe setup --yes --mysql-host 127.0.0.1 --mysql-user root --mysql-database scratch
+        shell: cmd
+
+      - name: gorun.bat exists and runs
+        run: |
+          if not exist scratch\gorun.bat (echo gorun.bat was not scaffolded & exit /b 1)
+          cd scratch
+          .\gorun.bat help
+        shell: cmd
 
   lint:
     runs-on: ubuntu-latest
