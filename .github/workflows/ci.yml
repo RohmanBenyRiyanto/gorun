@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, release]
+  pull_request:
+  workflow_call: {} # lets release.yml re-run this same suite before tagging
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./... -race -cover
+
+      - name: gofmt check
+        run: |
+          fmt_out="$(gofmt -l .)"
+          if [ -n "$fmt_out" ]; then
+            echo "The following files are not gofmt'd:"
+            echo "$fmt_out"
+            exit 1
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          # .golangci.yml uses the v2 config schema - the action needs to
+          # be v7+ to support golangci-lint v2 at all (v6 only understood
+          # v1 config/binaries), and the golangci-lint version itself
+          # pinned explicitly rather than "latest" so CI and local runs
+          # agree on behavior.
+          version: v2.12.2

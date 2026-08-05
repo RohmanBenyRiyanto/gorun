@@ -1,0 +1,24 @@
+# Written by hand, not by `gorun setup` - this is the "I already have a
+# config system" path. Host/port/user/database_name are just copied from
+# app.yaml: they're not secret, they rarely change, and keeping one small
+# literal copy here is simpler than round-tripping everything through
+# environment variables. The one field that's never copied is the
+# password - it references the exact same DB_MYSQL_PASSWORD environment
+# variable internal/config/config.go itself reads, so the actual secret
+# still lives in exactly one place, never in a file at all.
+#
+# This file is what `gorun db status` / `migrate run` / `table list` use
+# when run directly from the global binary. `seed run` doesn't use it -
+# see cmd/gorun-runner/main.go, which calls this project's own
+# config.Load() instead and never touches this file.
+name: "existing-config-sample"
+runner_path: "./cmd/gorun-runner"
+
+mysql:
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: "${DB_MYSQL_PASSWORD}"
+  database_name: "gorun_existing_config_sample"
+  migration_path: "database/migrations"
+  seeder_path: "database/seeders"

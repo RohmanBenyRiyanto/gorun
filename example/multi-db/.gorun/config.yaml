@@ -1,0 +1,34 @@
+name: "gorun-multi-db"
+usage: "gorun multi-engine reference"
+app_env: "local"
+multi_db: true
+runner_path: "./cmd/gorun-runner"
+
+mysql:
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: "${DB_MYSQL_PASSWORD}"
+  database_name: "gorun_multi_db"
+  charset: "utf8mb4"
+  parse_time: true
+  loc: "Local"
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: "5m"
+  migration_path: "database/migrations"
+  seeder_path: "database/seeders"
+
+postgresql:
+  host: "127.0.0.1"
+  port: "5432"
+  user: "beny"
+  password: "${DB_POSTGRES_PASSWORD}"
+  database_name: "gorun_multi_db"
+  ssl_mode: "disable"
+  time_zone: "UTC"
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: "5m"
+  migration_path: "database/migrations"
+  seeder_path: "database/seeders"

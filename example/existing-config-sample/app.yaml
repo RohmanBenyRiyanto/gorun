@@ -1,0 +1,12 @@
+# This project's OWN config file - nothing to do with gorun, and gorun
+# never reads it directly. Non-secret connection details live here,
+# committed to git; the password never does - see internal/config/config.go.
+app:
+  env: local
+
+database:
+  mysql:
+    host: 127.0.0.1
+    port: "3306"
+    user: root
+    db_name: gorun_existing_config_sample

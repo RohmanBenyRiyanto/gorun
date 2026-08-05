@@ -1,0 +1,24 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Compiled output left behind by `go build`/`go run` at repo or example root
+# (extension-less on Linux/macOS, so name-matched rather than by suffix -
+# nested under cmd/<name>/ as source, never as a build artifact there)
+/gorun
+/example/*/gorun
+/example/*/gorun-runner
+
+# Coverage / profiling
+*.out
+*.prof
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
