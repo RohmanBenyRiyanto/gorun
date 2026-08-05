@@ -49,23 +49,52 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Build gorun.exe
-        run: go build -o gorun.exe ./cmd/gorun
+      - name: Install the global gorun.exe onto PATH
+        run: go install ./cmd/gorun
+        shell: cmd
 
       - name: gorun setup in a scratch project
         run: |
           mkdir scratch
           cd scratch
           go mod init scratch
-          ..\gorun.exe setup --yes --mysql-host 127.0.0.1 --mysql-user root --mysql-database scratch
+          gorun setup --yes --mysql-host 127.0.0.1 --mysql-user root --mysql-database scratch
         shell: cmd
 
-      - name: gorun.bat exists and runs
+      - name: gorun.bat exists and runs explicitly
         run: |
           if not exist scratch\gorun.bat (echo gorun.bat was not scaffolded & exit /b 1)
           cd scratch
           .\gorun.bat help
         shell: cmd
+
+      - name: bare `gorun` in cmd.exe resolves to the local gorun.bat
+        run: |
+          cd scratch
+          for /f "delims=" %%i in ('where gorun') do (
+            echo First match: %%i
+            echo %%i | findstr /c:"scratch" >nul
+            if errorlevel 1 (
+              echo Expected cmd.exe to resolve bare 'gorun' to scratch\gorun.bat, got: %%i
+              exit /b 1
+            )
+            goto :cmddone
+          )
+          :cmddone
+          gorun help
+        shell: cmd
+
+      - name: bare `gorun` in PowerShell resolves to the global gorun.exe, not the local gorun.bat
+        run: |
+          cd scratch
+          $match = Get-Command gorun -All | Select-Object -First 1
+          Write-Host "First match: $($match.Source)"
+          if ($match.Source -like "*scratch*") {
+            Write-Error "Expected PowerShell to resolve bare 'gorun' to the global gorun.exe, got: $($match.Source)"
+            exit 1
+          }
+          gorun help
+        shell: pwsh
 
   lint:
     runs-on: ubuntu-latest
