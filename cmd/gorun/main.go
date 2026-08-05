@@ -69,7 +69,20 @@ func main() {
 	// entrypoint instead (which builds its own Config with real seeders
 	// and calls gorun.New itself), rather than gorun.New's own copy
 	// reporting "no registry configured" for every single seed command.
-	if len(rest) > 0 && rest[0] == "seed" && cfg.RunnerPath != "" {
+	//
+	// db/migrate/table get the same treatment, but only as a fallback:
+	// when .gorun/config.yaml carries no connection info of its own for
+	// either engine (a project that deliberately keeps that file minimal
+	// - just name/runner_path - to avoid duplicating connection settings
+	// it already has its own config system for, see the runner's own
+	// comments), delegating is the only way these commands can do
+	// anything at all. When the file does carry connection info, using
+	// it directly is faster (no `go run` subprocess) and remains the
+	// default.
+	noDirectEngine := !cfg.MySQL.IsConfigured() && !cfg.PostgreSQL.IsConfigured()
+	wantsDelegate := len(rest) > 0 && cfg.RunnerPath != "" && projectScoped[rest[0]] &&
+		(rest[0] == "seed" || noDirectEngine)
+	if wantsDelegate {
 		os.Exit(runViaRunner(cfg.RunnerPath, rest))
 	}
 

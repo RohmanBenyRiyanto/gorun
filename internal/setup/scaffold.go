@@ -147,23 +147,33 @@ func writeConfig(dir string, a answers) error {
 	return nil
 }
 
-// scaffoldDirs creates database/migrations/<engine> and
-// database/seeders/<engine> for every engine a configured, each with a
-// .gitkeep so the empty directory is actually tracked by git - it does
+// scaffoldDirs creates <MigrationPath>/<engine> and <SeederPath>/<engine>
+// for every engine a configured - respecting --mysql-migration-path/
+// --mysql-seeder-path (and the postgresql equivalents) rather than
+// assuming the database/migrations, database/seeders defaults, since a
+// project that already has migrations/seeders living somewhere else (set
+// via those flags, or the wizard's own prompts) shouldn't get a second,
+// empty set of directories scaffolded next to its real ones. Each gets a
+// .gitkeep so the empty directory is actually tracked by git - does
 // nothing for an engine that wasn't configured, and leaves any directory
 // that already exists untouched.
 func scaffoldDirs(dir string, a answers) error {
-	var engines []string
+	type engineDirs struct {
+		name                      string
+		migrationPath, seederPath string
+	}
+
+	var engines []engineDirs
 	if a.MySQL.Configure {
-		engines = append(engines, "mysql")
+		engines = append(engines, engineDirs{"mysql", a.MySQL.MigrationPath, a.MySQL.SeederPath})
 	}
 	if a.PostgreSQL.Configure {
-		engines = append(engines, "postgresql")
+		engines = append(engines, engineDirs{"postgresql", a.PostgreSQL.MigrationPath, a.PostgreSQL.SeederPath})
 	}
 
 	for _, e := range engines {
-		for _, base := range []string{"database/migrations", "database/seeders"} {
-			target := filepath.Join(dir, base, e)
+		for _, base := range []string{e.migrationPath, e.seederPath} {
+			target := filepath.Join(dir, base, e.name)
 			if err := os.MkdirAll(target, 0755); err != nil {
 				return fmt.Errorf("creating %s: %w", target, err)
 			}
